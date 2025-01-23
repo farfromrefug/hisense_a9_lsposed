@@ -1,0 +1,6 @@
+Improvements for the Hisense A9
+
+**Features**
+
+* Reader mode: allow to use volume button to switch page while screen is off
+* Disable lockscreen overlay
