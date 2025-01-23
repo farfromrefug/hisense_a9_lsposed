@@ -1,0 +1,111 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.akylas.hisensea9.lsposed"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="24"
+9        android:targetSdkVersion="35" />
+10
+11    <permission
+11-->[androidx.core:core:1.15.0] /home/mguillon/.gradle/caches/8.9/transforms/dbacccc78738f7a7768c41d50436f5ed/transformed/core-1.15.0/AndroidManifest.xml:22:5-24:47
+12        android:name="com.akylas.hisensea9.lsposed.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+12-->[androidx.core:core:1.15.0] /home/mguillon/.gradle/caches/8.9/transforms/dbacccc78738f7a7768c41d50436f5ed/transformed/core-1.15.0/AndroidManifest.xml:23:9-81
+13        android:protectionLevel="signature" />
+13-->[androidx.core:core:1.15.0] /home/mguillon/.gradle/caches/8.9/transforms/dbacccc78738f7a7768c41d50436f5ed/transformed/core-1.15.0/AndroidManifest.xml:24:9-44
+14
+15    <uses-permission android:name="com.akylas.hisensea9.lsposed.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+15-->[androidx.core:core:1.15.0] /home/mguillon/.gradle/caches/8.9/transforms/dbacccc78738f7a7768c41d50436f5ed/transformed/core-1.15.0/AndroidManifest.xml:26:5-97
+15-->[androidx.core:core:1.15.0] /home/mguillon/.gradle/caches/8.9/transforms/dbacccc78738f7a7768c41d50436f5ed/transformed/core-1.15.0/AndroidManifest.xml:26:22-94
+16
+17    <application
+17-->/home/mguillon/dev/android/a9/lsposed_module/app/src/main/AndroidManifest.xml:5:5-20:19
+18        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+18-->[androidx.core:core:1.15.0] /home/mguillon/.gradle/caches/8.9/transforms/dbacccc78738f7a7768c41d50436f5ed/transformed/core-1.15.0/AndroidManifest.xml:28:18-86
+19        android:debuggable="true"
+20        android:extractNativeLibs="false"
+21        android:label="HisenseA9LSPosed"
+21-->/home/mguillon/dev/android/a9/lsposed_module/app/src/main/AndroidManifest.xml:6:9-41
+22        android:testOnly="true" >
+23        <meta-data
+23-->/home/mguillon/dev/android/a9/lsposed_module/app/src/main/AndroidManifest.xml:8:9-10:36
+24            android:name="xposedmodule"
+24-->/home/mguillon/dev/android/a9/lsposed_module/app/src/main/AndroidManifest.xml:9:13-40
+25            android:value="true" />
+25-->/home/mguillon/dev/android/a9/lsposed_module/app/src/main/AndroidManifest.xml:10:13-33
+26        <meta-data
+26-->/home/mguillon/dev/android/a9/lsposed_module/app/src/main/AndroidManifest.xml:11:9-13:51
+27            android:name="xposeddescription"
+27-->/home/mguillon/dev/android/a9/lsposed_module/app/src/main/AndroidManifest.xml:12:13-45
+28            android:value="@string/xposed_desc" />
+28-->/home/mguillon/dev/android/a9/lsposed_module/app/src/main/AndroidManifest.xml:13:13-48
+29        <meta-data
+29-->/home/mguillon/dev/android/a9/lsposed_module/app/src/main/AndroidManifest.xml:14:9-16:34
+30            android:name="xposedminversion"
+30-->/home/mguillon/dev/android/a9/lsposed_module/app/src/main/AndroidManifest.xml:15:13-44
+31            android:value="54" />
+31-->/home/mguillon/dev/android/a9/lsposed_module/app/src/main/AndroidManifest.xml:16:13-31
+32        <meta-data
+32-->/home/mguillon/dev/android/a9/lsposed_module/app/src/main/AndroidManifest.xml:17:9-19:53
+33            android:name="xposedscope"
+33-->/home/mguillon/dev/android/a9/lsposed_module/app/src/main/AndroidManifest.xml:18:13-39
+34            android:resource="@array/xposedscope" />
+34-->/home/mguillon/dev/android/a9/lsposed_module/app/src/main/AndroidManifest.xml:19:13-50
+35
+36        <provider
+36-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mguillon/.gradle/caches/8.9/transforms/7fe3c52b6585bab4a05b4a6017b651cf/transformed/profileinstaller-1.3.0/AndroidManifest.xml:24:9-32:20
+37            android:name="androidx.startup.InitializationProvider"
+37-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mguillon/.gradle/caches/8.9/transforms/7fe3c52b6585bab4a05b4a6017b651cf/transformed/profileinstaller-1.3.0/AndroidManifest.xml:25:13-67
+38            android:authorities="com.akylas.hisensea9.lsposed.androidx-startup"
+38-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mguillon/.gradle/caches/8.9/transforms/7fe3c52b6585bab4a05b4a6017b651cf/transformed/profileinstaller-1.3.0/AndroidManifest.xml:26:13-68
+39            android:exported="false" >
+39-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mguillon/.gradle/caches/8.9/transforms/7fe3c52b6585bab4a05b4a6017b651cf/transformed/profileinstaller-1.3.0/AndroidManifest.xml:27:13-37
+40            <meta-data
+40-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mguillon/.gradle/caches/8.9/transforms/7fe3c52b6585bab4a05b4a6017b651cf/transformed/profileinstaller-1.3.0/AndroidManifest.xml:29:13-31:52
+41                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+41-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mguillon/.gradle/caches/8.9/transforms/7fe3c52b6585bab4a05b4a6017b651cf/transformed/profileinstaller-1.3.0/AndroidManifest.xml:30:17-85
+42                android:value="androidx.startup" />
+42-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mguillon/.gradle/caches/8.9/transforms/7fe3c52b6585bab4a05b4a6017b651cf/transformed/profileinstaller-1.3.0/AndroidManifest.xml:31:17-49
+43        </provider>
+44
+45        <receiver
+45-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mguillon/.gradle/caches/8.9/transforms/7fe3c52b6585bab4a05b4a6017b651cf/transformed/profileinstaller-1.3.0/AndroidManifest.xml:34:9-52:20
+46            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+46-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mguillon/.gradle/caches/8.9/transforms/7fe3c52b6585bab4a05b4a6017b651cf/transformed/profileinstaller-1.3.0/AndroidManifest.xml:35:13-76
+47            android:directBootAware="false"
+47-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mguillon/.gradle/caches/8.9/transforms/7fe3c52b6585bab4a05b4a6017b651cf/transformed/profileinstaller-1.3.0/AndroidManifest.xml:36:13-44
+48            android:enabled="true"
+48-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mguillon/.gradle/caches/8.9/transforms/7fe3c52b6585bab4a05b4a6017b651cf/transformed/profileinstaller-1.3.0/AndroidManifest.xml:37:13-35
+49            android:exported="true"
+49-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mguillon/.gradle/caches/8.9/transforms/7fe3c52b6585bab4a05b4a6017b651cf/transformed/profileinstaller-1.3.0/AndroidManifest.xml:38:13-36
+50            android:permission="android.permission.DUMP" >
+50-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mguillon/.gradle/caches/8.9/transforms/7fe3c52b6585bab4a05b4a6017b651cf/transformed/profileinstaller-1.3.0/AndroidManifest.xml:39:13-57
+51            <intent-filter>
+51-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mguillon/.gradle/caches/8.9/transforms/7fe3c52b6585bab4a05b4a6017b651cf/transformed/profileinstaller-1.3.0/AndroidManifest.xml:40:13-42:29
+52                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+52-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mguillon/.gradle/caches/8.9/transforms/7fe3c52b6585bab4a05b4a6017b651cf/transformed/profileinstaller-1.3.0/AndroidManifest.xml:41:17-91
+52-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mguillon/.gradle/caches/8.9/transforms/7fe3c52b6585bab4a05b4a6017b651cf/transformed/profileinstaller-1.3.0/AndroidManifest.xml:41:25-88
+53            </intent-filter>
+54            <intent-filter>
+54-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mguillon/.gradle/caches/8.9/transforms/7fe3c52b6585bab4a05b4a6017b651cf/transformed/profileinstaller-1.3.0/AndroidManifest.xml:43:13-45:29
+55                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+55-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mguillon/.gradle/caches/8.9/transforms/7fe3c52b6585bab4a05b4a6017b651cf/transformed/profileinstaller-1.3.0/AndroidManifest.xml:44:17-85
+55-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mguillon/.gradle/caches/8.9/transforms/7fe3c52b6585bab4a05b4a6017b651cf/transformed/profileinstaller-1.3.0/AndroidManifest.xml:44:25-82
+56            </intent-filter>
+57            <intent-filter>
+57-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mguillon/.gradle/caches/8.9/transforms/7fe3c52b6585bab4a05b4a6017b651cf/transformed/profileinstaller-1.3.0/AndroidManifest.xml:46:13-48:29
+58                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+58-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mguillon/.gradle/caches/8.9/transforms/7fe3c52b6585bab4a05b4a6017b651cf/transformed/profileinstaller-1.3.0/AndroidManifest.xml:47:17-88
+58-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mguillon/.gradle/caches/8.9/transforms/7fe3c52b6585bab4a05b4a6017b651cf/transformed/profileinstaller-1.3.0/AndroidManifest.xml:47:25-85
+59            </intent-filter>
+60            <intent-filter>
+60-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mguillon/.gradle/caches/8.9/transforms/7fe3c52b6585bab4a05b4a6017b651cf/transformed/profileinstaller-1.3.0/AndroidManifest.xml:49:13-51:29
+61                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+61-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mguillon/.gradle/caches/8.9/transforms/7fe3c52b6585bab4a05b4a6017b651cf/transformed/profileinstaller-1.3.0/AndroidManifest.xml:50:17-95
+61-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mguillon/.gradle/caches/8.9/transforms/7fe3c52b6585bab4a05b4a6017b651cf/transformed/profileinstaller-1.3.0/AndroidManifest.xml:50:25-92
+62            </intent-filter>
+63        </receiver>
+64    </application>
+65
+66</manifest>

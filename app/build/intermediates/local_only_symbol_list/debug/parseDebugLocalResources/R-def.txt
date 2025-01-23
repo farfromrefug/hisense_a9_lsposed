@@ -1,0 +1,14 @@
+R_DEF: Internal format may change without notice
+local
+array xposedscope
+id api
+id binder
+id framework
+id framework_version
+id framework_version_code
+id random_prefs
+id remote_file
+id request_scope
+id scope
+layout activity_main
+string xposed_desc
