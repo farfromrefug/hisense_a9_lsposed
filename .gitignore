@@ -13,3 +13,4 @@ app/release
 /.env
 /vendor
 /certs
+/dist
