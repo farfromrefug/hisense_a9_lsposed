@@ -1,8 +1,11 @@
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+<PreferenceScreen xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:ignore="UnusedAttribute">
     <SwitchPreferenceCompat
         android:key="disable_lockscreen_overlay"
         android:title="Disable Lockscreen overlay"
         android:summary="a resart is needed for this to take effect"
+        app:iconSpaceReserved="false"
         android:defaultValue="true"
         />
     <PreferenceCategory
@@ -11,6 +14,7 @@
         app:showSeekBarValue="true"
         app:min="0"
         app:adjustable="true"
+        app:iconSpaceReserved="false"
         android:max="2000"
         android:defaultValue="280"
         android:key="volume_key_down_delay"
@@ -19,6 +23,7 @@
     <SeekBarPreference
         app:showSeekBarValue="true"
         app:min="0"
+        app:iconSpaceReserved="false"
         app:adjustable="true"
         android:max="2000"
         android:defaultValue="0"
@@ -27,6 +32,7 @@
         android:title="key up delay" />
     <SeekBarPreference
         app:showSeekBarValue="true"
+        app:iconSpaceReserved="false"
         app:min="200"
         android:max="3000"
         android:defaultValue="1000"
@@ -39,6 +45,7 @@
         app:min="200"
         app:adjustable="true"
         android:max="3000"
+        app:iconSpaceReserved="false"
         android:defaultValue="1400"
         android:key="volume_key_cleanup_delay"
         android:summary="delay between volume key up and cleanup"

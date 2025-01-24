@@ -24,7 +24,7 @@
             android:resource="@array/xposedscope" />
         <activity
             android:name="com.akylas.hisensea9.SettingsActivity"
-            android:label="Hisense A9 Lsposed Settings" android:exported="true">
+            android:label="A9 Lsposed Settings" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.DEFAULT" />
