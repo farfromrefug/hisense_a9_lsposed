@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.util.archivesName
+
 plugins {
     alias(libs.plugins.agp.app)
     alias(libs.plugins.kotlin)
@@ -13,7 +15,7 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0.0"
-        archivesBaseName = "$applicationId-v$versionCode($versionName)"
+        archivesName = "$applicationId-v$versionCode($versionName)"
     }
     buildFeatures {
         buildConfig = true
