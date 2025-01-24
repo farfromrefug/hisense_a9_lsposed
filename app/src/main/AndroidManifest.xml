@@ -4,9 +4,14 @@
 
     <application
         android:label="HisenseA9LSPosed"
-        tools:ignore="MissingApplicationIcon">
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:theme="@style/AppTheme">
         <meta-data
             android:name="xposedmodule"
+            android:value="true" />
+        <meta-data
+            android:name="xposedsharedprefs"
             android:value="true" />
         <meta-data
             android:name="xposeddescription"
@@ -17,5 +22,14 @@
         <meta-data
             android:name="xposedscope"
             android:resource="@array/xposedscope" />
+        <activity
+            android:name="com.akylas.hisensea9.SettingsActivity"
+            android:label="Hisense A9 Lsposed Settings" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 </manifest>

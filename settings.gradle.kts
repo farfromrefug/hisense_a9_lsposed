@@ -23,5 +23,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ScreenOffBiometrics"
+rootProject.name = "a9lsposed"
 include(":app")

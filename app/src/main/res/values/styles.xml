@@ -1,0 +1,47 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppThemeBase" parent="Theme.Material3.Light.NoActionBar">
+    </style>
+    <style name="AppThemeOverlay" parent="AppThemeBase">
+    </style>
+<!--    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.MaterialComponents.ActionBar">-->
+<!--    </style>-->
+
+    <style name="AppTheme" parent="AppThemeOverlay">
+        <item name="appBarLayoutStyle">@style/Widget.App.AppBarLayout</item>
+        <item name="toolbarStyle">@style/Widget.App.Toolbar</item>
+        <item name="preferenceTheme">@style/ThemeOverlay.App.Preference</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryVariant">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="windowActionModeOverlay">true</item>
+        <item name="android:windowActivityTransitions">true</item>
+        <item name="android:windowContentTransitions">true</item>
+        <item name="android:windowAllowEnterTransitionOverlap">true</item>
+        <item name="android:windowAllowReturnTransitionOverlap">true</item>
+    </style>
+    <style name="ThemeOverlay.App.Preference" parent="PreferenceThemeOverlay">
+        <item name="switchPreferenceCompatStyle">@style/App.Preference.SwitchPreference</item>
+<!--        <item name="seekBarPreferenceStyle">@style/App.Preference.SeekbarPreference</item>-->
+    </style>
+
+    <style name="App.Preference.SwitchPreference" parent="Preference.SwitchPreference.Material">
+        <item name="android:widgetLayout">@layout/my_material_switch_layout</item>
+    </style>
+<!--    <style name="App.Preference.SeekbarPreference" parent="Preference.SeekBarPreference.Material">-->
+<!--        <item name="android:layout">@layout/my_material_seekbar_layout</item>-->
+<!--    </style>-->
+    <style name="Widget.App.Toolbar" parent="Widget.Material3.Toolbar">
+        <item name="materialThemeOverlay">@style/ThemeOverlay.App.Toolbar</item>
+<!--        <item name="titleTextColor">@android:color/white</item>-->
+<!--        <item name="navigationIconTint">@android:color/white</item>-->
+    </style>
+    <style name="Widget.App.AppBarLayout" parent="Widget.Material3.AppBarLayout">
+        <!-- Change the background color of the AppBarLayout so the AppBarLayout is green.
+                The toolbar is transparent by default so you will see this color through the toolbar. -->
+    </style>
+    <style name="ThemeOverlay.App.Toolbar" parent="">
+<!--        <item name="colorControlNormal">@android:color/white</item>-->
+    </style>
+</resources>

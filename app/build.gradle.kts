@@ -12,7 +12,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
     }
     buildFeatures {
         buildConfig = true
@@ -62,8 +62,9 @@ android {
 dependencies {
 //    compileOnly(libs.libxposed.api)
 //    implementation(libs.libxposed.service)
-    dependencies { compileOnly("de.robv.android.xposed:api:82") }
-    implementation("androidx.core:core-ktx:1.15.0")
-
+    dependencies { compileOnly(libs.api) }
+    implementation(libs.core.ktx)
+    implementation(libs.preference.ktx)
+    implementation (libs.material)
 }
 

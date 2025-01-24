@@ -17,6 +17,7 @@ import android.view.KeyEvent
 import androidx.core.content.IntentCompat
 import com.akylas.hisensea9.utils.SystemProperties
 import com.akylas.hisensea9.utils.registerReceiver
+import com.akylas.hisensea9.utils.Preferences
 
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XposedHelpers
@@ -78,11 +79,14 @@ class ModuleMain : IXposedHookLoadPackage {
             if (mVolumeWakeLock?.isHeld == true) {
                 mVolumeWakeLock?.release()
             }
-            Log.i("sendEmptyMessageDelayed 595/596")
-            mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(595, 250L)
-            mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(596, 1650L)
-            Log.i("sendEmptyMessageDelayed 601")
-            mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(601, 200L);
+            val prefs = Preferences()
+            val delay = prefs.getInt("sleep_delay", 250)
+            val cleanup_delay = prefs.getInt("volume_key_cleanup_delay", 1400)
+            val key_up_delay = prefs.getInt("volume_key_up_delay", 200)
+            Log.i("delay delay:$delay cleanup_delay:$cleanup_delay key_up_delay:$key_up_delay")
+            mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(595, delay.toLong())
+            mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(596, (delay + cleanup_delay).toLong())
+            mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(601, key_up_delay.toLong());
         }
     }
 
@@ -124,8 +128,10 @@ class ModuleMain : IXposedHookLoadPackage {
                 )
                 wakeLock.acquire(2300L)
                 mLastDownKeyEvent =  KeyEvent(paramKeyEvent)
-                Log.i("sendEmptyMessageDelayed 600")
-                mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(600, 200L)
+                val prefs = Preferences()
+                val key_down_delay = prefs.getInt("volume_key_down_delay", 200)
+                Log.i("sendEmptyMessageDelayed 600 with delay $key_down_delay")
+                mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(600, key_down_delay.toLong())
                 return true;
             }
         }
@@ -178,21 +184,24 @@ class ModuleMain : IXposedHookLoadPackage {
     @SuppressLint("NewApi")
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
         Log.i("handleLoadPackage " + lpparam.packageName)
+        val pref = Preferences()
         if (lpparam.packageName == "com.android.systemui") {
             Log.i("patching  com.android.systemui" )
-            findMethod(
-                findClass(
-                    "com.android.systemui.statusbar.phone.ScrimController",
-                    lpparam.classLoader
-                )
-            ) { name == "applyState\$1\$1" }
-                .hookBefore {
-                    val state =
-                        XposedHelpers.getObjectField(it.thisObject, "mState")
-                    XposedHelpers.setFloatField(state, "mBehindAlpha", 0F)
-                    XposedHelpers.setIntField(state, "mBehindTint", 0)
-                    XposedHelpers.setFloatField(state, "mNotifAlpha", 0F)
-                }
+            if (pref.getBoolean("disable_lockscreen_overlay", true)) {
+                findMethod(
+                    findClass(
+                        "com.android.systemui.statusbar.phone.ScrimController",
+                        lpparam.classLoader
+                    )
+                ) { name == "applyState\$1\$1" }
+                    .hookBefore {
+                        val state =
+                            XposedHelpers.getObjectField(it.thisObject, "mState")
+                        XposedHelpers.setFloatField(state, "mBehindAlpha", 0F)
+                        XposedHelpers.setIntField(state, "mBehindTint", 0)
+                        XposedHelpers.setFloatField(state, "mNotifAlpha", 0F)
+                    }
+            }
         }
          else if (lpparam.packageName == "android") {
 //            Log.i("patching  android" + lpparam.packageName + " " + mPowerManager + " " + mAlarmService + " " + enableLightIntent)

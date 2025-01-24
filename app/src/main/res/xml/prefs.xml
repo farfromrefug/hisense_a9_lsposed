@@ -1,0 +1,47 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <SwitchPreferenceCompat
+        android:key="disable_lockscreen_overlay"
+        android:title="Disable Lockscreen overlay"
+        android:summary="a resart is needed for this to take effect"
+        android:defaultValue="true"
+        />
+    <PreferenceCategory
+        android:title="Reader Mode">
+    <SeekBarPreference
+        app:showSeekBarValue="true"
+        app:min="0"
+        app:adjustable="true"
+        android:max="2000"
+        android:defaultValue="280"
+        android:key="volume_key_down_delay"
+        android:summary="delay before sending keydown event after waking up"
+        android:title="key down delay" />
+    <SeekBarPreference
+        app:showSeekBarValue="true"
+        app:min="0"
+        app:adjustable="true"
+        android:max="2000"
+        android:defaultValue="0"
+        android:key="volume_key_up_delay"
+        android:summary="delay between volume key down and volume key up"
+        android:title="key up delay" />
+    <SeekBarPreference
+        app:showSeekBarValue="true"
+        app:min="200"
+        android:max="3000"
+        android:defaultValue="1000"
+        app:adjustable="true"
+        android:key="sleep_delay"
+        android:summary="delay between volume key down and screen sleep"
+        android:title="screen sleep delay" />
+    <SeekBarPreference
+        app:showSeekBarValue="true"
+        app:min="200"
+        app:adjustable="true"
+        android:max="3000"
+        android:defaultValue="1400"
+        android:key="volume_key_cleanup_delay"
+        android:summary="delay between volume key up and cleanup"
+        android:title="cleanup delay" />
+    </PreferenceCategory>
+</PreferenceScreen>
