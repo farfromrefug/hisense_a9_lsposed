@@ -80,9 +80,9 @@ class ModuleMain : IXposedHookLoadPackage {
                 mVolumeWakeLock?.release()
             }
             val prefs = Preferences()
-            val delay = prefs.getInt("sleep_delay", 250)
+            val delay = prefs.getInt("sleep_delay", 550)
             val cleanup_delay = prefs.getInt("volume_key_cleanup_delay", 1400)
-            val key_up_delay = prefs.getInt("volume_key_up_delay", 200)
+            val key_up_delay = prefs.getInt("volume_key_up_delay", 160)
             Log.i("delay delay:$delay cleanup_delay:$cleanup_delay key_up_delay:$key_up_delay")
             mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(595, delay.toLong())
             mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(596, (delay + cleanup_delay).toLong())
@@ -129,7 +129,7 @@ class ModuleMain : IXposedHookLoadPackage {
                 wakeLock.acquire(2300L)
                 mLastDownKeyEvent =  KeyEvent(paramKeyEvent)
                 val prefs = Preferences()
-                val key_down_delay = prefs.getInt("volume_key_down_delay", 200)
+                val key_down_delay = prefs.getInt("volume_key_down_delay", 300)
                 Log.i("sendEmptyMessageDelayed 600 with delay $key_down_delay")
                 mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(600, key_down_delay.toLong())
                 return true;
@@ -140,15 +140,18 @@ class ModuleMain : IXposedHookLoadPackage {
 
     fun handleVolumeKeyEventUp(paramKeyEvent: KeyEvent, isLocked: Boolean): Boolean {
         val wakeLock = mVolumeWakeLock!!
-        Log.i("handleVolumeKeyEventUp " + paramKeyEvent.keyCode + " " + paramKeyEvent.action  + " " + isLocked + " " + wakeLock.isHeld)
-        if (wakeLock.isHeld && mLastUpKeyEvent == null) {
-            mLastUpKeyEvent = KeyEvent(paramKeyEvent);
+        Log.i("handleVolumeKeyEventUp " + paramKeyEvent.keyCode + " " + paramKeyEvent.action  + " " + isLocked + " " + wakeLock.isHeld + " " + mLastUpKeyEvent)
+        if (wakeLock.isHeld) {
+            if (mLastUpKeyEvent == null) {
+                mLastUpKeyEvent = KeyEvent(paramKeyEvent);
+            }
             return true;
         }
         return false;
     }
 
     fun handleWakeUpOnVolume(paramKeyEvent: KeyEvent): Boolean {
+        Log.i("interceptKeyBeforeQueueing " + paramKeyEvent.keyCode + " " + paramKeyEvent.action  + " ")
         val wakeOnVolume = SystemProperties.get("sys.wakeup_on_volume")
         if ("1" == wakeOnVolume) {
             val isLocked = mPowerManager?.isInteractive != true
@@ -176,6 +179,26 @@ class ModuleMain : IXposedHookLoadPackage {
                     }
                 } finally {
                 }
+            } else if (keyCode == 0 && action == KeyEvent.ACTION_UP && isLocked) {
+                val wakeLock = mVolumeWakeLock!!
+                if (!wakeLock.isHeld) {
+                    forceHideKeyguard()
+                    XposedHelpers.callMethod(
+                        mPhoneWindowManager,
+                        "wakeUpFromWakeKey",
+                        SystemClock.uptimeMillis(),
+                        26,
+                        false
+                    )
+                    wakeLock.acquire(2300L)
+                    mLastDownKeyEvent =  KeyEvent(paramKeyEvent)
+                    val prefs = Preferences()
+                    val delay = prefs.getInt("eink_button_sleep_delay", 4000)
+                    val cleanup_delay = prefs.getInt("volume_key_cleanup_delay", 1400)
+                    Log.i("delay delay:$delay cleanup_delay:$cleanup_delay")
+                    mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(595, delay.toLong())
+                    mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(596, (delay + cleanup_delay).toLong())
+                }
             }
         }
         return false;
@@ -202,6 +225,19 @@ class ModuleMain : IXposedHookLoadPackage {
                         XposedHelpers.setFloatField(state, "mNotifAlpha", 0F)
                     }
             }
+            var wakingForNotif = false;
+            findMethod(
+                findClass(
+                    "com.android.systemui.doze.DozeScreenState",
+                    lpparam.classLoader
+                )
+            ) { name == "transitionTo" }
+                .hookBefore {
+                    Log.i("doze transitionTo " + it.args[0] + " " + it.args[1]  )
+                    if (it.args[0] == 2) {
+                        wakingForNotif = true
+                    }
+                }
         }
          else if (lpparam.packageName == "android") {
 //            Log.i("patching  android" + lpparam.packageName + " " + mPowerManager + " " + mAlarmService + " " + enableLightIntent)
@@ -271,6 +307,53 @@ class ModuleMain : IXposedHookLoadPackage {
                         sendPastKeyUpEvent()
                         it.result = true
                     }
+                }
+        } else {
+            findMethod(
+                findClass(
+                    "com.android.internal.policy.PhoneWindow",
+                    lpparam.classLoader
+                )
+            ) { name == "setNavigationBarColor" }
+                .hookBefore {
+                    Log.i("setNavigationBarColor " + it.args[0])
+                    it.args[0] = 0xFFFFFFFF.toInt()
+                }
+            findMethod(
+                findClass(
+                    "com.android.internal.policy.PhoneWindow",
+                    lpparam.classLoader
+                )
+            ) { name == "setNavigationBarDividerColor" }
+                .hookBefore {
+                    Log.i("setNavigationBarDividerColor " + it.args[0])
+                    it.args[0] = -1;
+                }
+            findMethod(
+                findClass(
+                    "com.android.internal.policy.PhoneWindow",
+                    lpparam.classLoader
+                )
+            ) { name == "setStatusBarColor" }
+                .hookBefore {
+                    Log.i("setStatusBarColor " + it.args[0])
+                    it.args[0] = 0xFFFFFFFF.toInt()
+                }
+            findMethod(
+                findClass(
+                    "com.android.internal.policy.PhoneWindow",
+                    lpparam.classLoader
+                )
+            ) { name == "generateLayout" }
+                .hookAfter() {
+                    Log.i("generateLayout  after")
+                    XposedHelpers.setIntField(it.thisObject, "mNavigationBarColor",
+                        0xFFFFFFFF.toInt()
+                    )
+                    XposedHelpers.setIntField(it.thisObject, "mStatusBarColor",
+                        0xFFFFFFFF.toInt()
+                    )
+                    XposedHelpers.setIntField(it.thisObject, "mNavigationBarDividerColor", -1)
                 }
         }
     }

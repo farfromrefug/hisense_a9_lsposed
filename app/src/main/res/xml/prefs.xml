@@ -42,6 +42,16 @@
         android:title="screen sleep delay" />
     <SeekBarPreference
         app:showSeekBarValue="true"
+        app:iconSpaceReserved="false"
+        app:min="200"
+        android:max="10000"
+        android:defaultValue="5000"
+        app:adjustable="true"
+        android:key="eink_button_sleep_delay"
+        android:summary="delay between eink key up and screen sleep"
+        android:title="eink button screen sleep delay" />
+    <SeekBarPreference
+        app:showSeekBarValue="true"
         app:min="200"
         app:adjustable="true"
         android:max="3000"
