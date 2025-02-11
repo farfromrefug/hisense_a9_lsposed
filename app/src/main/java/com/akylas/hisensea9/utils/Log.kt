@@ -12,7 +12,7 @@ object Log {
 
   fun i(msg: String) {
     Log.i(TAG, msg)
-    XposedBridge.log("A9Lsposed logging: " + msg)
+    XposedBridge.log("A9Lsposed: " + msg)
   }
 
   fun d(msg: String, full: Boolean = false) {
