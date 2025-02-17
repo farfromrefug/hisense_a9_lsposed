@@ -9,6 +9,7 @@
         android:defaultValue="true"
         />
     <PreferenceCategory
+        app:iconSpaceReserved="false"
         android:title="Reader Mode">
     <SeekBarPreference
         app:showSeekBarValue="true"
