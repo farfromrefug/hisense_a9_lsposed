@@ -29,6 +29,7 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage
 import de.robv.android.xposed.XposedHelpers.findClass;
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
+import android.view.WindowManager
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.ActionBar
 import androidx.core.graphics.drawable.DrawableCompat
@@ -252,8 +253,138 @@ class ModuleMain : IXposedHookLoadPackage {
                     wakingForNotif = true
                 }
             }
-        } else if (lpparam.packageName == "android") {
-//            Log.i("patching  android" + lpparam.packageName + " " + mPowerManager + " " + mAlarmService + " " + enableLightIntent)
+        } else if (lpparam.packageName == "com.android.messaging") {
+            findMethod(
+                findClass(
+                    "com.android.messaging.ui.ConversationDrawables", lpparam.classLoader
+                )
+            ) { name == "getBubbleDrawable" }.hookBefore() {
+                if (it.args[1] == true) {
+                    it.result = (XposedHelpers.getObjectField(
+                        it.thisObject,
+                        "mIncomingBubbleNoArrowDrawable"
+                    ) as Drawable).constantState!!.newDrawable().mutate()
+                } else {
+                    it.result = (XposedHelpers.getObjectField(
+                        it.thisObject,
+                        "mOutgoingBubbleNoArrowDrawable"
+                    ) as Drawable).constantState!!.newDrawable().mutate()
+                }
+            }
+//                findMethod(
+//                    findClass(
+//                        "com.android.messaging.ui.BugleActionBarActivity", lpparam.classLoader
+//                    )
+//                ) { name == "updateActionBar" }.hookAfter() {
+//                    Log.i("BugleActionBarActivity updateActionBar ${it.thisObject}")
+////                    XposedHelpers.callMethod(it.args[0], "setBackgroundDrawable", ColorDrawable(Color.WHITE))
+//                    val title = XposedHelpers.callMethod(it.args[0], "getTitle") as CharSequence?
+//                    if (title != null) {
+//                        Log.i("updateActionBar $title")
+//                        val text = SpannableString(if (title is SpannableString) title.toString() else title);
+//                        text.setSpan(ForegroundColorSpan(Color.BLACK), 0, text.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+//                        XposedHelpers.callMethod(it.args[0], "setTitle", text)
+//                    }
+//
+//                }
+            findMethod(
+                findClass(
+                    "com.android.messaging.ui.BugleActionBarActivity", lpparam.classLoader
+                )
+            ) { name == "onCreateOptionsMenu" }.hookAfter() {
+                val count = XposedHelpers.callMethod(it.args[0], "size") as Int
+                for (i in 0..count - 1) {
+                    val menuItem =
+                        (XposedHelpers.callMethod(it.args[0], "getItem", i) as MenuItem)
+                    tintMenuIcon(menuItem, Color.BLACK)
+                }
+//                    it.result = false
+            }
+//                findMethod(
+//                    findClass(
+//                        "com.android.messaging.ui.conversation.ConversationFragment", lpparam.classLoader
+//                    )
+//                ) { name == "updateActionBar" }.hookAfter() {
+//                    Log.i("ConversationFragment updateActionBar")
+//                    XposedHelpers.callMethod(it.args[0], "setBackgroundDrawable", ColorDrawable(Color.WHITE))
+//                    val title = XposedHelpers.callMethod(it.args[0], "getTitle") as CharSequence?
+//                    if (title != null) {
+//                        val text = SpannableString(if (title is SpannableString) title.toString() else title);
+//                        text.setSpan(ForegroundColorSpan(Color.BLACK), 0, text.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+//                        XposedHelpers.callMethod(it.args[0], "setTitle", text)
+//                    }
+//
+//                }
+//                findMethod(
+//                    findClass(
+//                        "com.android.messaging.ui.conversation.ConversationFragment", lpparam.classLoader
+//                    )
+//                ) { name == "updateActionAndStatusBarColor" }.hookBefore() {
+//                    (XposedHelpers.callMethod(it.thisObject, "getActivity") as Activity).window?.statusBarColor = 0
+//                    it.result = false
+//                }
+            findMethod(
+                findClass(
+                    "com.android.messaging.ui.conversation.ConversationFragment",
+                    lpparam.classLoader
+                )
+            ) { name == "onCreateOptionsMenu" }.hookAfter() {
+                val count = XposedHelpers.callMethod(it.args[0], "size") as Int
+                for (i in 0..count - 1) {
+                    val menuItem =
+                        (XposedHelpers.callMethod(it.args[0], "getItem", i) as MenuItem)
+                    tintMenuIcon(menuItem, Color.BLACK)
+                }
+//                    (XposedHelpers.callMethod(it.thisObject, "getActivity") as Activity).window?.statusBarColor = 0
+//                    it.result = false
+            }
+            findMethod(
+                findClass(
+                    "com.android.messaging.ui.conversation.ConversationMessageView",
+                    lpparam.classLoader
+                )
+            ) { name == "updateTextAppearance" }.hookAfter {
+                val blackColor = Color.BLACK
+                XposedHelpers.callMethod(
+                    XposedHelpers.getObjectField(
+                        it.thisObject,
+                        "mStatusTextView"
+                    ), "setTextColor", blackColor
+                )
+                XposedHelpers.callMethod(
+                    XposedHelpers.getObjectField(
+                        it.thisObject,
+                        "mSubjectLabel"
+                    ), "setTextColor", blackColor
+                )
+                XposedHelpers.callMethod(
+                    XposedHelpers.getObjectField(
+                        it.thisObject,
+                        "mSenderNameTextView"
+                    ), "setTextColor", blackColor
+                )
+                XposedHelpers.callMethod(
+                    XposedHelpers.getObjectField(
+                        it.thisObject,
+                        "mMessageTextView"
+                    ), "setTextColor", blackColor
+                )
+                XposedHelpers.callMethod(
+                    XposedHelpers.getObjectField(
+                        it.thisObject,
+                        "mMessageTextView"
+                    ), "setLinkTextColor", blackColor
+                )
+                XposedHelpers.callMethod(
+                    XposedHelpers.getObjectField(
+                        it.thisObject,
+                        "mSubjectText"
+                    ), "setTextColor", blackColor
+                )
+            }
+        }
+        if (lpparam.packageName == "android") {
+            //            Log.i("patching  android" + lpparam.packageName + " " + mPowerManager + " " + mAlarmService + " " + enableLightIntent)
 
             findMethod(
                 findClass(
@@ -261,7 +392,7 @@ class ModuleMain : IXposedHookLoadPackage {
                 )
             ) { name == "interceptKeyBeforeQueueing" }.hookBefore {
                 if (mPhoneWindowManager == null) {
-//                        Log.i("interceptKeyBeforeQueueing  init")
+                    //                        Log.i("interceptKeyBeforeQueueing  init")
                     mPhoneWindowManager = it.thisObject
                     mPhoneWindowManagerHandler = XposedHelpers.getObjectField(
                         mPhoneWindowManager, "mHandler"
@@ -287,14 +418,14 @@ class ModuleMain : IXposedHookLoadPackage {
                 val what = message.what
 
                 if (what == 595) {
-//                        Log.i("handleMessage 595")
+                    //                        Log.i("handleMessage 595")
                     XposedHelpers.callMethod(
                         mPowerManager, "goToSleep", SystemClock.uptimeMillis()
                     )
                     forceHideKeyguard()
                     it.result = true
                 } else if (what == 596) {
-//                        Log.i("handleMessage 596")
+                    //                        Log.i("handleMessage 596")
                     // fix backlight
                     try {
                         val str = SystemProperties.get("sys.linevibrator_touch");
@@ -302,7 +433,7 @@ class ModuleMain : IXposedHookLoadPackage {
                         if (i < 0) {
                             val stringBuilder = StringBuilder();
                             stringBuilder.append(0 - i);
-//                                Log.i("sys.linevibrator_touch " + stringBuilder.toString())
+                            //                                Log.i("sys.linevibrator_touch " + stringBuilder.toString())
                             SystemProperties.set(
                                 "sys.linevibrator_touch", stringBuilder.toString()
                             );
@@ -311,175 +442,34 @@ class ModuleMain : IXposedHookLoadPackage {
                     }
                     it.result = true
                 } else if (what == 600) {
-//                        Log.i("handleMessage 600")
+                    //                        Log.i("handleMessage 600")
                     sendPastKeyDownEvent()
                     it.result = true
                 } else if (what == 601) {
-//                        Log.i("handleMessage 601")
+                    //                        Log.i("handleMessage 601")
                     sendPastKeyUpEvent()
                     it.result = true
                 }
             }
-        } else {
-            if (lpparam.packageName == "com.android.messaging") {
-                findMethod(
-                    findClass(
-                        "com.android.messaging.ui.ConversationDrawables", lpparam.classLoader
-                    )
-                ) { name == "getBubbleDrawable" }.hookBefore() {
-                    if (it.args[1] == true) {
-                        it.result = (XposedHelpers.getObjectField(
-                            it.thisObject,
-                            "mIncomingBubbleNoArrowDrawable"
-                        ) as Drawable).constantState!!.newDrawable().mutate()
-                    } else {
-                        it.result = (XposedHelpers.getObjectField(
-                            it.thisObject,
-                            "mOutgoingBubbleNoArrowDrawable"
-                        ) as Drawable).constantState!!.newDrawable().mutate()
-                    }
-                }
-//                findMethod(
-//                    findClass(
-//                        "com.android.messaging.ui.BugleActionBarActivity", lpparam.classLoader
-//                    )
-//                ) { name == "updateActionBar" }.hookAfter() {
-//                    Log.i("BugleActionBarActivity updateActionBar ${it.thisObject}")
-////                    XposedHelpers.callMethod(it.args[0], "setBackgroundDrawable", ColorDrawable(Color.WHITE))
-//                    val title = XposedHelpers.callMethod(it.args[0], "getTitle") as CharSequence?
-//                    if (title != null) {
-//                        Log.i("updateActionBar $title")
-//                        val text = SpannableString(if (title is SpannableString) title.toString() else title);
-//                        text.setSpan(ForegroundColorSpan(Color.BLACK), 0, text.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-//                        XposedHelpers.callMethod(it.args[0], "setTitle", text)
-//                    }
-//
-//                }
-                findMethod(
-                    findClass(
-                        "com.android.messaging.ui.BugleActionBarActivity", lpparam.classLoader
-                    )
-                ) { name == "onCreateOptionsMenu" }.hookAfter() {
-                    val count = XposedHelpers.callMethod(it.args[0], "size") as Int
-                    for (i in 0..count - 1) {
-                        val menuItem =
-                            (XposedHelpers.callMethod(it.args[0], "getItem", i) as MenuItem)
-                        tintMenuIcon(menuItem, Color.BLACK)
-                    }
-//                    it.result = false
-                }
-//                findMethod(
-//                    findClass(
-//                        "com.android.messaging.ui.conversation.ConversationFragment", lpparam.classLoader
-//                    )
-//                ) { name == "updateActionBar" }.hookAfter() {
-//                    Log.i("ConversationFragment updateActionBar")
-//                    XposedHelpers.callMethod(it.args[0], "setBackgroundDrawable", ColorDrawable(Color.WHITE))
-//                    val title = XposedHelpers.callMethod(it.args[0], "getTitle") as CharSequence?
-//                    if (title != null) {
-//                        val text = SpannableString(if (title is SpannableString) title.toString() else title);
-//                        text.setSpan(ForegroundColorSpan(Color.BLACK), 0, text.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-//                        XposedHelpers.callMethod(it.args[0], "setTitle", text)
-//                    }
-//
-//                }
-//                findMethod(
-//                    findClass(
-//                        "com.android.messaging.ui.conversation.ConversationFragment", lpparam.classLoader
-//                    )
-//                ) { name == "updateActionAndStatusBarColor" }.hookBefore() {
-//                    (XposedHelpers.callMethod(it.thisObject, "getActivity") as Activity).window?.statusBarColor = 0
-//                    it.result = false
-//                }
-                findMethod(
-                    findClass(
-                        "com.android.messaging.ui.conversation.ConversationFragment",
-                        lpparam.classLoader
-                    )
-                ) { name == "onCreateOptionsMenu" }.hookAfter() {
-                    val count = XposedHelpers.callMethod(it.args[0], "size") as Int
-                    for (i in 0..count - 1) {
-                        val menuItem =
-                            (XposedHelpers.callMethod(it.args[0], "getItem", i) as MenuItem)
-                        tintMenuIcon(menuItem, Color.BLACK)
-                    }
-//                    (XposedHelpers.callMethod(it.thisObject, "getActivity") as Activity).window?.statusBarColor = 0
-//                    it.result = false
-                }
-                findMethod(
-                    findClass(
-                        "com.android.messaging.ui.conversation.ConversationMessageView",
-                        lpparam.classLoader
-                    )
-                ) { name == "updateTextAppearance" }.hookAfter {
-                    val blackColor = Color.BLACK
-                    XposedHelpers.callMethod(
-                        XposedHelpers.getObjectField(
-                            it.thisObject,
-                            "mStatusTextView"
-                        ), "setTextColor", blackColor
-                    )
-                    XposedHelpers.callMethod(
-                        XposedHelpers.getObjectField(
-                            it.thisObject,
-                            "mSubjectLabel"
-                        ), "setTextColor", blackColor
-                    )
-                    XposedHelpers.callMethod(
-                        XposedHelpers.getObjectField(
-                            it.thisObject,
-                            "mSenderNameTextView"
-                        ), "setTextColor", blackColor
-                    )
-                    XposedHelpers.callMethod(
-                        XposedHelpers.getObjectField(
-                            it.thisObject,
-                            "mMessageTextView"
-                        ), "setTextColor", blackColor
-                    )
-                    XposedHelpers.callMethod(
-                        XposedHelpers.getObjectField(
-                            it.thisObject,
-                            "mMessageTextView"
-                        ), "setLinkTextColor", blackColor
-                    )
-                    XposedHelpers.callMethod(
-                        XposedHelpers.getObjectField(
-                            it.thisObject,
-                            "mSubjectText"
-                        ), "setTextColor", blackColor
-                    )
-                }
-            }
-            findMethod(
-                findClass(
-                    "com.android.internal.policy.PhoneWindow", lpparam.classLoader
-                )
-            ) { name == "setNavigationBarColor" }.hookBefore {
+        }
+
+        val PhoneWindowClass = XposedHelpers.findClassIfExists(
+            "com.android.internal.policy.PhoneWindow", lpparam.classLoader
+        )
+        if (PhoneWindowClass != null) {
+            findMethod(PhoneWindowClass) { name == "setNavigationBarColor" }.hookBefore {
 //                    Log.i("setNavigationBarColor " + it.args[0])
                 it.args[0] = 0xFFFFFFFF.toInt()
             }
-            findMethod(
-                findClass(
-                    "com.android.internal.policy.PhoneWindow", lpparam.classLoader
-                )
-            ) { name == "setNavigationBarDividerColor" }.hookBefore {
+            findMethod(PhoneWindowClass) { name == "setNavigationBarDividerColor" }.hookBefore {
 //                    Log.i("setNavigationBarDividerColor " + it.args[0])
                 it.args[0] = -1;
             }
-            findMethod(
-                findClass(
-                    "com.android.internal.policy.PhoneWindow", lpparam.classLoader
-                )
-            ) { name == "setStatusBarColor" }.hookBefore {
+            findMethod(PhoneWindowClass) { name == "setStatusBarColor" }.hookBefore {
 //                    Log.i("setStatusBarColor " + it.args[0])
                 it.args[0] = 0xFFFFFFFF.toInt()
             }
-            findMethod(
-                findClass(
-                    "com.android.internal.policy.PhoneWindow", lpparam.classLoader
-                )
-            ) { name == "generateLayout" }.hookAfter() {
+            findMethod(PhoneWindowClass) { name == "generateLayout" }.hookAfter() {
                 // Here still sets the light bar flags via setSystemUiVisibility (even it is deprecated) to
                 // make the light bar state be able to be read from the legacy method.
                 val decor = it.args[0] as View
@@ -496,7 +486,15 @@ class ModuleMain : IXposedHookLoadPackage {
                     it.thisObject, "mStatusBarColor", 0xFFFFFFFF.toInt()
                 )
                 XposedHelpers.setIntField(it.thisObject, "mNavigationBarDividerColor", -1)
+                Log.i("generateLayout")
+                val params =(XposedHelpers.callMethod(
+                    it.thisObject,
+                    "getAttributes"
+                ) as WindowManager.LayoutParams)
+                params.flags = params.flags and (WindowManager.LayoutParams.FLAG_DIM_BEHIND).inv()
+                params.dimAmount = 0.0F
             }
         }
+
     }
 }
