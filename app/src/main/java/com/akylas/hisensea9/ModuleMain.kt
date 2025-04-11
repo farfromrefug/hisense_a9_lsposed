@@ -168,6 +168,31 @@ class ModuleMain : IXposedHookLoadPackage {
         }
         return false;
     }
+    
+    fun refreshScreen() {
+        if (isLocked) {
+                val wakeLock = mVolumeWakeLock!!
+                if (!wakeLock.isHeld) {
+                    forceHideKeyguard()
+                    XposedHelpers.callMethod(
+                        mPhoneWindowManager,
+                        "wakeUpFromWakeKey",
+                        SystemClock.uptimeMillis(),
+                        26,
+                        false
+                    )
+                    wakeLock.acquire(2300L)
+                    mLastDownKeyEvent = KeyEvent(paramKeyEvent)
+                    val prefs = Preferences()
+                    val delay = prefs.getInt("eink_button_sleep_delay", 4000)
+                    val cleanup_delay = prefs.getInt("volume_key_cleanup_delay", 1400)
+//                    Log.i("delay delay:$delay cleanup_delay:$cleanup_delay")
+                    mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(595, delay.toLong())
+                    mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(
+                        596, (delay + cleanup_delay).toLong()
+                    )
+                }
+    }
 
     fun handleWakeUpOnVolume(paramKeyEvent: KeyEvent): Boolean {
 //        Log.i("interceptKeyBeforeQueueing " + paramKeyEvent.keyCode + " " + paramKeyEvent.action  + " ")
@@ -197,28 +222,8 @@ class ModuleMain : IXposedHookLoadPackage {
                     }
                 } finally {
                 }
-            } else if (keyCode == 0 && action == KeyEvent.ACTION_UP && isLocked) {
-                val wakeLock = mVolumeWakeLock!!
-                if (!wakeLock.isHeld) {
-                    forceHideKeyguard()
-                    XposedHelpers.callMethod(
-                        mPhoneWindowManager,
-                        "wakeUpFromWakeKey",
-                        SystemClock.uptimeMillis(),
-                        26,
-                        false
-                    )
-                    wakeLock.acquire(2300L)
-                    mLastDownKeyEvent = KeyEvent(paramKeyEvent)
-                    val prefs = Preferences()
-                    val delay = prefs.getInt("eink_button_sleep_delay", 4000)
-                    val cleanup_delay = prefs.getInt("volume_key_cleanup_delay", 1400)
-//                    Log.i("delay delay:$delay cleanup_delay:$cleanup_delay")
-                    mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(595, delay.toLong())
-                    mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(
-                        596, (delay + cleanup_delay).toLong()
-                    )
-                }
+            } else if (keyCode == 0 && action == KeyEvent.ACTION_UP) {
+                refreshScreen()
             }
         }
         return false;
@@ -403,6 +408,13 @@ class ModuleMain : IXposedHookLoadPackage {
                         appContext.getSystemService(Context.POWER_SERVICE) as PowerManager
                     mVolumeWakeLock =
                         mPowerManager!!.newWakeLock(268435462, "Sys::VolumeWakeLock")
+                    val intentFilter = IntentFilter()
+                    intentFilter.addAction("com.akylas.A9_REFRESH_SCREEN")
+                    appContext.registerReceiver(intentFilter) { intent ->
+                            if (intent?.action == "com.akylas.A9_REFRESH_SCREEN") {
+                                refreshScreen()
+                            }
+                        }
                 }
                 if (handleWakeUpOnVolume(it.args[0] as KeyEvent)) {
                     it.result = 0
