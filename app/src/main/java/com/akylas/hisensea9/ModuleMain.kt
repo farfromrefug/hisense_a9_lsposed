@@ -194,6 +194,7 @@ class ModuleMain : IXposedHookLoadPackage {
                         596, (delay + cleanup_delay).toLong()
                     )
                 }
+            }
     }
 
     fun handleWakeUpOnVolume(paramKeyEvent: KeyEvent): Boolean {
