@@ -9,6 +9,7 @@ import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
+import android.content.IntentFilter
 import android.os.Build
 import android.os.Handler
 import android.os.Message
