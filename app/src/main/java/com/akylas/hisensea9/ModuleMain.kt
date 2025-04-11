@@ -22,6 +22,7 @@ import android.view.MenuItem
 import android.view.View
 import com.akylas.hisensea9.utils.SystemProperties
 import com.akylas.hisensea9.utils.Preferences
+import com.akylas.hisensea9.utils.registerReceiver
 
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XposedHelpers
