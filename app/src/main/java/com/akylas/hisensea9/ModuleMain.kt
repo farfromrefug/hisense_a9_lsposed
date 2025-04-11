@@ -172,6 +172,7 @@ class ModuleMain : IXposedHookLoadPackage {
     }
     
     fun refreshScreen() {
+        val isLocked = mPowerManager?.isInteractive != true
         if (isLocked) {
                 val wakeLock = mVolumeWakeLock!!
                 if (!wakeLock.isHeld) {
@@ -184,7 +185,6 @@ class ModuleMain : IXposedHookLoadPackage {
                         false
                     )
                     wakeLock.acquire(2300L)
-                    mLastDownKeyEvent = KeyEvent(paramKeyEvent)
                     val prefs = Preferences()
                     val delay = prefs.getInt("eink_button_sleep_delay", 4000)
                     val cleanup_delay = prefs.getInt("volume_key_cleanup_delay", 1400)
