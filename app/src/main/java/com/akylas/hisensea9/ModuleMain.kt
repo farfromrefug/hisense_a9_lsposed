@@ -171,7 +171,7 @@ class ModuleMain : IXposedHookLoadPackage {
         return false;
     }
     
-    fun refreshScreen() {
+    fun refreshScreen( delay: Int, cleanup_delay: Int) {
         val isLocked = mPowerManager?.isInteractive != true
         if (isLocked) {
                 val wakeLock = mVolumeWakeLock!!
@@ -185,9 +185,6 @@ class ModuleMain : IXposedHookLoadPackage {
                         false
                     )
                     wakeLock.acquire(2300L)
-                    val prefs = Preferences()
-                    val delay = prefs.getInt("eink_button_sleep_delay", 4000)
-                    val cleanup_delay = prefs.getInt("volume_key_cleanup_delay", 1400)
 //                    Log.i("delay delay:$delay cleanup_delay:$cleanup_delay")
                     mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(595, delay.toLong())
                     mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(
@@ -233,7 +230,10 @@ class ModuleMain : IXposedHookLoadPackage {
                 } finally {
                 }
             } else if (keyCode == 0 && action == KeyEvent.ACTION_UP) {
-                refreshScreen()
+                val prefs = Preferences()
+                val delay = prefs.getInt("eink_button_sleep_delay", 4000)
+                val cleanup_delay = prefs.getInt("volume_key_cleanup_delay", 1400)
+                refreshScreen(delay, cleanup_delay)
             }
         }
         return false;
@@ -423,7 +423,10 @@ class ModuleMain : IXposedHookLoadPackage {
                     intentFilter.addAction("com.akylas.A9_SLEEP_SCREEN")
                     appContext.registerReceiver(intentFilter) { intent ->
                             if (intent?.action == "com.akylas.A9_REFRESH_SCREEN") {
-                                refreshScreen()
+                                val prefs = Preferences()
+                                val delay = prefs.getInt("eink_button_sleep_delay", 4000)
+                                val cleanup_delay = prefs.getInt("volume_key_cleanup_delay", 1400)
+                                refreshScreen(intent.getExtra("sleep_delay", delay), cleanup_delay)
                             }
                             else if (intent?.action == "com.akylas.A9_SLEEP_SCREEN") {
                                 sleepScreen()
