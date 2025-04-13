@@ -196,6 +196,13 @@ class ModuleMain : IXposedHookLoadPackage {
                 }
             }
     }
+    
+    fun sleepScreen(){
+        XposedHelpers.callMethod(
+            mPowerManager, "goToSleep", SystemClock.uptimeMillis()
+        )
+        forceHideKeyguard()
+      }
 
     fun handleWakeUpOnVolume(paramKeyEvent: KeyEvent): Boolean {
 //        Log.i("interceptKeyBeforeQueueing " + paramKeyEvent.keyCode + " " + paramKeyEvent.action  + " ")
@@ -413,9 +420,13 @@ class ModuleMain : IXposedHookLoadPackage {
                         mPowerManager!!.newWakeLock(268435462, "Sys::VolumeWakeLock")
                     val intentFilter = IntentFilter()
                     intentFilter.addAction("com.akylas.A9_REFRESH_SCREEN")
+                    intentFilter.addAction("com.akylas.A9_SLEEP_SCREEN")
                     appContext.registerReceiver(intentFilter) { intent ->
                             if (intent?.action == "com.akylas.A9_REFRESH_SCREEN") {
                                 refreshScreen()
+                            }
+                            else if (intent?.action == "com.akylas.A9_SLEEP_SCREEN") {
+                                sleepScreen()
                             }
                         }
                 }
@@ -434,10 +445,7 @@ class ModuleMain : IXposedHookLoadPackage {
 
                 if (what == 595) {
                     //                        Log.i("handleMessage 595")
-                    XposedHelpers.callMethod(
-                        mPowerManager, "goToSleep", SystemClock.uptimeMillis()
-                    )
-                    forceHideKeyguard()
+                    sleepScreen()
                     it.result = true
                 } else if (what == 596) {
                     //                        Log.i("handleMessage 596")
