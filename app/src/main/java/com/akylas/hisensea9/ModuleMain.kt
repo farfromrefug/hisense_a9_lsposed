@@ -184,12 +184,16 @@ class ModuleMain : IXposedHookLoadPackage {
                         26,
                         false
                     )
-                    wakeLock.acquire(2300L)
+                    
 //                    Log.i("delay delay:$delay cleanup_delay:$cleanup_delay")
-                    mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(595, delay.toLong())
-                    mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(
-                        596, (delay + cleanup_delay).toLong()
-                    )
+                    if (delay > 0) {
+                        wakeLock.acquire(2300L)
+                        mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(595, delay.toLong())
+                        mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(
+                            596, (delay + cleanup_delay).toLong()
+                        )
+                    }
+                    
                 }
             }
     }
