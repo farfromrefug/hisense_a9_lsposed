@@ -430,7 +430,7 @@ class ModuleMain : IXposedHookLoadPackage {
                                 val prefs = Preferences()
                                 val delay = prefs.getInt("eink_button_sleep_delay", 4000)
                                 val cleanup_delay = prefs.getInt("volume_key_cleanup_delay", 1400)
-                                refreshScreen(intent.getExtra("sleep_delay", delay), cleanup_delay)
+                                refreshScreen(intent.getIntExtra("sleep_delay", delay), cleanup_delay)
                             }
                             else if (intent?.action == "com.akylas.A9_SLEEP_SCREEN") {
                                 sleepScreen()
