@@ -234,10 +234,22 @@ class ModuleMain : IXposedHookLoadPackage {
                 } finally {
                 }
             } else if (keyCode == 0 && action == KeyEvent.ACTION_UP) {
-                val prefs = Preferences()
-                val delay = prefs.getInt("eink_button_sleep_delay", 4000)
-                val cleanup_delay = prefs.getInt("volume_key_cleanup_delay", 1400)
-                refreshScreen(delay, cleanup_delay)
+                if (event.isLongPress) {
+                  // Handle long press
+                  val intent = Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                  }
+                  if (intent.resolveActivity(packageManager) != null) {
+                    appContext.startActivity(intent)
+                    
+                  }
+                } else {
+                  // Handle normal press
+                  val prefs = Preferences()
+                  val delay = prefs.getInt("eink_button_sleep_delay", 4000)
+                  val cleanup_delay = prefs.getInt("volume_key_cleanup_delay", 1400)
+                  refreshScreen(delay, cleanup_delay)
+                }
             }
         }
         return false;
