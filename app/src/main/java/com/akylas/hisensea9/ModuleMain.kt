@@ -239,9 +239,9 @@ class ModuleMain : IXposedHookLoadPackage {
                   val intent = Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                   }
-                  if (intent.resolveActivity(packageManager) != null) {
+                  try {
                     appContext.startActivity(intent)
-                    
+                  } finally {
                   }
                 } else {
                   // Handle normal press
