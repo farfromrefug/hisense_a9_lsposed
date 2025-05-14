@@ -239,7 +239,7 @@ class ModuleMain : IXposedHookLoadPackage {
                 if (event.isLongPress) {
                   // Handle long press
                   val prefs = Preferences()
-                  if (pref.getBoolean("eink_longpress_camera", false)) {
+                  if (prefs.getBoolean("eink_longpress_camera", false)) {
                       val intent = Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA_SECURE)
                       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                       try {
