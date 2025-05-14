@@ -239,9 +239,8 @@ class ModuleMain : IXposedHookLoadPackage {
                   // Handle long press
                   val prefs = Preferences()
                   if (pref.getBoolean("eink_longpress_camera", false)) {
-                      val intent = Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA_SECURE).apply {
-                        this.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                      }
+                      val intent = Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA_SECURE)
+                      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                       try {
                         refreshScreen(0,0)
                         appContext.startActivity(intent)
