@@ -8,6 +8,13 @@
         app:iconSpaceReserved="false"
         android:defaultValue="true"
         />
+    <SwitchPreferenceCompat
+        android:key="eink_longpress_camera"
+        android:title="eink button camera"
+        android:summary="Longpress eink button to open camera"
+        app:iconSpaceReserved="false"
+        android:defaultValue="true"
+        />
     <PreferenceCategory
         app:iconSpaceReserved="false"
         android:title="Reader Mode">
