@@ -16,6 +16,7 @@ import android.os.Handler
 import android.os.Message
 import android.os.PowerManager
 import android.os.SystemClock
+import android.provider.MediaStore
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
