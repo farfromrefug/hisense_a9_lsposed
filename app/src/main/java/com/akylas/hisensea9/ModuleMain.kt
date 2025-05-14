@@ -235,8 +235,9 @@ class ModuleMain : IXposedHookLoadPackage {
                     }
                 } finally {
                 }
-            } else if (keyCode == 0 && action == KeyEvent.ACTION_UP) {
-                if (paramKeyEvent.isLongPress) {
+            } else if (keyCode == 0) {
+                
+                if (action == KeyEvent.ACTION_DOWN && paramKeyEvent.isLongPress) {
                   // Handle long press
                   val prefs = Preferences()
                   if (prefs.getBoolean("eink_longpress_camera", false)) {
@@ -249,7 +250,7 @@ class ModuleMain : IXposedHookLoadPackage {
                     }
                   }
                   
-                } else {
+                } else if (action == KeyEvent.ACTION_UP) {
                   // Handle normal press
                   val prefs = Preferences()
                   val delay = prefs.getInt("eink_button_sleep_delay", 4000)
