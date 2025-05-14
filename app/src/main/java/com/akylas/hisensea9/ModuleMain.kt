@@ -5,6 +5,7 @@ import android.app.Activity
 import android.app.AndroidAppHelper
 import android.content.Context
 import android.content.res.ColorStateList
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.drawable.ColorDrawable
@@ -236,13 +237,18 @@ class ModuleMain : IXposedHookLoadPackage {
             } else if (keyCode == 0 && action == KeyEvent.ACTION_UP) {
                 if (event.isLongPress) {
                   // Handle long press
-                  val intent = Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                  val prefs = Preferences()
+                  if (pref.getBoolean("eink_longpress_camera", false)) {
+                      val intent = Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                      }
+                      try {
+                        refreshScreen(0,0)
+                        appContext.startActivity(intent)
+                    } finally {
+                    }
                   }
-                  try {
-                    appContext.startActivity(intent)
-                  } finally {
-                  }
+                  
                 } else {
                   // Handle normal press
                   val prefs = Preferences()
