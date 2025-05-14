@@ -236,7 +236,7 @@ class ModuleMain : IXposedHookLoadPackage {
                 } finally {
                 }
             } else if (keyCode == 0 && action == KeyEvent.ACTION_UP) {
-                if (event.isLongPress) {
+                if (paramKeyEvent.isLongPress) {
                   // Handle long press
                   val prefs = Preferences()
                   if (prefs.getBoolean("eink_longpress_camera", false)) {
