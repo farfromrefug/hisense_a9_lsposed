@@ -243,7 +243,7 @@ class ModuleMain : IXposedHookLoadPackage {
                     mEinkPressDownTime = SystemClock.uptimeMillis() 
                 } else if (action == KeyEvent.ACTION_UP) {
                     val prefs = Preferences()
-                    if (SystemClock.uptimeMillis() - mEinkPressDownTime > 600) {
+                    if (SystemClock.uptimeMillis() - mEinkPressDownTime > 1000) {
                        if (prefs.getBoolean("eink_longpress_camera", false)) {
                           val intent = Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA_SECURE)
                           intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
