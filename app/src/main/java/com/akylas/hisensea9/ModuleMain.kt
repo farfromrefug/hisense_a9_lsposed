@@ -62,6 +62,8 @@ class ModuleMain : IXposedHookLoadPackage {
         var mLastUpKeyEvent: android.view.KeyEvent? = null;
         var mLastDownKeyEvent: android.view.KeyEvent? = null;
         var mInputManager: Any? = null
+        
+        var mEinkPressDownTime: Long = -1
 
         @RequiresApi(Build.VERSION_CODES.O)
         fun tintMenuIcon(item: MenuItem, color: Int) {
@@ -237,25 +239,26 @@ class ModuleMain : IXposedHookLoadPackage {
                 }
             } else if (keyCode == 0) {
                 
-                if (action == KeyEvent.ACTION_DOWN && paramKeyEvent.isLongPress) {
-                  // Handle long press
-                  val prefs = Preferences()
-                  if (prefs.getBoolean("eink_longpress_camera", false)) {
-                      val intent = Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA_SECURE)
-                      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                      try {
-                        refreshScreen(0,0)
-                        appContext.startActivity(intent)
-                    } finally {
-                    }
-                  }
-                  
+                if (action == KeyEvent.ACTION_DOWN) {
+                    mEinkPressDownTime = SystemClock.uptimeMillis() 
                 } else if (action == KeyEvent.ACTION_UP) {
-                  // Handle normal press
-                  val prefs = Preferences()
-                  val delay = prefs.getInt("eink_button_sleep_delay", 4000)
-                  val cleanup_delay = prefs.getInt("volume_key_cleanup_delay", 1400)
-                  refreshScreen(delay, cleanup_delay)
+                    val prefs = Preferences()
+                    if (SystemClock.uptimeMillis() - mEinkPressDownTime > 600) {
+                       if (prefs.getBoolean("eink_longpress_camera", false)) {
+                          val intent = Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA_SECURE)
+                          intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                          try {
+                            refreshScreen(0,0)
+                            appContext.startActivity(intent)
+                          } finally {
+                          }
+                      } 
+                    } else {
+                        // Handle normal press            
+                      val delay = prefs.getInt("eink_button_sleep_delay", 4000)
+                      val cleanup_delay = prefs.getInt("volume_key_cleanup_delay", 1400)
+                      refreshScreen(delay, cleanup_delay)
+                    }              
                 }
             }
         }
