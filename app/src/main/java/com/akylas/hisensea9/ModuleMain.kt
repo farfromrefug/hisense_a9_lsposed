@@ -65,6 +65,8 @@ class ModuleMain : IXposedHookLoadPackage {
         
         var mEinkPressDownTime: Long = -1
 
+        var dozeState = "DOZE" // in Doze
+
         @RequiresApi(Build.VERSION_CODES.O)
         fun tintMenuIcon(item: MenuItem, color: Int) {
 //            Log.i("tintMenuIcon $item ${item.icon}")
@@ -99,7 +101,11 @@ class ModuleMain : IXposedHookLoadPackage {
 
     fun sendPastKeyDownEvent() {
         if (mLastDownKeyEvent != null) {
-            Log.i("sendPastKeyDownEvent")
+//            Log.i("sendPastKeyDownEvent $dozeState $mLastDownKeyEvent")
+            if (dozeState == "DOZE") {
+                // we are in doze let's trigger again when not
+                return;
+            }
             XposedHelpers.callMethod(mInputManager, "injectInputEvent", mLastDownKeyEvent, 0)
             mLastDownKeyEvent = null;
 
@@ -110,7 +116,7 @@ class ModuleMain : IXposedHookLoadPackage {
             val delay = prefs.getInt("sleep_delay", 550)
             val cleanup_delay = prefs.getInt("volume_key_cleanup_delay", 1400)
             val key_up_delay = prefs.getInt("volume_key_up_delay", 160)
-            Log.i("delay delay:$delay cleanup_delay:$cleanup_delay key_up_delay:$key_up_delay")
+//            Log.i("delay delay:$delay cleanup_delay:$cleanup_delay key_up_delay:$key_up_delay")
             mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(595, delay.toLong())
             mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(
                 596, (delay + cleanup_delay).toLong()
@@ -121,7 +127,7 @@ class ModuleMain : IXposedHookLoadPackage {
 
     fun sendPastKeyUpEvent() {
         if (mLastUpKeyEvent != null) {
-            Log.i("sendPastKeyUpEvent")
+//            Log.i("sendPastKeyUpEvent")
             XposedHelpers.callMethod(mInputManager, "injectInputEvent", mLastUpKeyEvent, 0)
             mLastUpKeyEvent = null;
         }
@@ -283,16 +289,20 @@ class ModuleMain : IXposedHookLoadPackage {
                     XposedHelpers.setFloatField(state, "mNotifAlpha", 0F)
                 }
             }
-            var wakingForNotif = false;
             findMethod(
                 findClass(
                     "com.android.systemui.doze.DozeScreenState", lpparam.classLoader
                 )
             ) { name == "transitionTo" }.hookBefore {
-                Log.i("doze transitionTo " + it.args[0] + " " + it.args[1])
-                if (it.args[0] == 2) {
-                    wakingForNotif = true
-                }
+//                if (it.args[0] == 2 && it.args[1] == 2) {
+                    val intent = Intent("com.akylas.A9_DOZE_STATE")
+
+                    val state = "${it.args[1]}"
+//                Log.i("doze transitionTo " + it.args[0] + " " + it.args[1] + " " + state)
+                    intent.putExtra("state", state)
+//                    Log.i("sending com.akylas.A9_DOZE_STATE")
+                    appContext.sendBroadcast(intent)
+//                }
             }
         } else if (lpparam.packageName == "com.android.messaging") {
             findMethod(
@@ -447,6 +457,7 @@ class ModuleMain : IXposedHookLoadPackage {
                     val intentFilter = IntentFilter()
                     intentFilter.addAction("com.akylas.A9_REFRESH_SCREEN")
                     intentFilter.addAction("com.akylas.A9_SLEEP_SCREEN")
+                    intentFilter.addAction("com.akylas.A9_DOZE_STATE")
                     appContext.registerReceiver(intentFilter) { intent ->
                             if (intent?.action == "com.akylas.A9_REFRESH_SCREEN") {
                                 val prefs = Preferences()
@@ -456,6 +467,14 @@ class ModuleMain : IXposedHookLoadPackage {
                             }
                             else if (intent?.action == "com.akylas.A9_SLEEP_SCREEN") {
                                 sleepScreen()
+                            }
+                            else if (intent?.action == "com.akylas.A9_DOZE_STATE") {
+                                val state = intent.getStringExtra("state") ?: dozeState
+//                                Log.i("received doze state event $dozeState $state ${state == "FINISH"} ${mLastDownKeyEvent} ")
+                                dozeState = state;
+                                if (state == "FINISH" && mLastDownKeyEvent != null ) {
+                                    sendPastKeyDownEvent()
+                                }
                             }
                         }
                 }
