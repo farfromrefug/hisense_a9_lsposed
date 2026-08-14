@@ -65,6 +65,22 @@ class ModuleMain : IXposedHookLoadPackage {
         
         var mEinkPressDownTime: Long = -1
 
+        // uptimeMillis of the last time the user put the screen to sleep with the power key.
+        // -1 means "no manual sleep pending" (cleared as soon as the user wakes it back up).
+        var mManualSleepTime: Long = -1
+
+        // Packages whose activities must not be stopped when the display sleeps, so that their
+        // windows keep a valid surface and the panel shows real content the instant it wakes up
+        // instead of black. Cached because shouldSleepActivities() is called under the WM lock.
+        @Volatile
+        var mKeepAwakePackages: Set<String> = emptySet()
+
+        // Set while a refresh is waiting for the WAKE transition to bring the app to the front
+        // before the keyguard is dismissed. Hiding it earlier uncovers the screen while the
+        // display is unblocking, which is what leaves the panel black.
+        @Volatile
+        var mPendingKeyguardHide = false
+
         var dozeState = "DOZE" // in Doze
 
         @RequiresApi(Build.VERSION_CODES.O)
@@ -181,31 +197,108 @@ class ModuleMain : IXposedHookLoadPackage {
         return false;
     }
     
-    fun refreshScreen( delay: Int, cleanup_delay: Int) {
-        val isLocked = mPowerManager?.isInteractive != true
-        if (isLocked) {
-                val wakeLock = mVolumeWakeLock!!
-                if (!wakeLock.isHeld) {
-                    forceHideKeyguard()
-                    XposedHelpers.callMethod(
-                        mPhoneWindowManager,
-                        "wakeUpFromWakeKey",
-                        SystemClock.uptimeMillis(),
-                        26,
-                        false
-                    )
-                    
-//                    Log.i("delay delay:$delay cleanup_delay:$cleanup_delay")
-                    if (delay > 0) {
-                        wakeLock.acquire(2300L)
-                        mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(595, delay.toLong())
-                        mPhoneWindowManagerHandler?.sendEmptyMessageDelayed(
-                            596, (delay + cleanup_delay).toLong()
-                        )
-                    }
-                    
+    /**
+     * Remembers whether the user turned the screen off himself with the power key, so that
+     * A9_REFRESH_SCREEN can be ignored for a while afterwards (see [refreshScreen]).
+     */
+    fun trackPowerKey(paramKeyEvent: KeyEvent) {
+        if (paramKeyEvent.keyCode != KeyEvent.KEYCODE_POWER || paramKeyEvent.action != KeyEvent.ACTION_DOWN) {
+            return
+        }
+        // Cheap, rare, and the moment before the screen goes off is exactly when the cached
+        // values start mattering again.
+        reloadCachedPrefs()
+        // Screen on when the power key goes down => the user is putting it to sleep.
+        // Screen off => he is waking it back up, so drop the blackout.
+        mManualSleepTime =
+            if (mPowerManager?.isInteractive == true) SystemClock.uptimeMillis() else -1
+    }
+
+    /**
+     * Caches the preferences read from hot paths (the WM lock, and every touch while the screen
+     * is off), where opening XSharedPreferences per call would be far too expensive.
+     */
+    fun reloadCachedPrefs() {
+        val prefs = Preferences()
+        mKeepAwakePackages = prefs.getString("keep_awake_packages", "")
+            .split(',').map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+    }
+
+    fun refreshScreen( delay: Int, cleanup_delay: Int, respectManualSleep: Boolean = false) {
+        val handler = mPhoneWindowManagerHandler ?: return
+        // Run on the policy handler thread so that concurrent A9_REFRESH_SCREEN intents
+        // (received on the system_server main looper) are serialized against the pending
+        // 595/596 messages instead of racing them.
+        handler.post {
+            val isAsleep = mPowerManager?.isInteractive != true
+            if (respectManualSleep && isAsleep && mManualSleepTime >= 0) {
+                // The user turned the screen off himself: ignore remote refreshes for a while
+                // instead of waking it right back up. Only applies while the screen is off, so
+                // a power long-press (power menu, screen stays on) does not block anything.
+                val blockDelay = Preferences().getInt("manual_sleep_block_delay", 5000)
+                if (SystemClock.uptimeMillis() - mManualSleepTime < blockDelay) {
+//                    Log.i("refreshScreen ignored, manual sleep blackout")
+                    return@post
                 }
             }
+
+            // Cheap enough here (off the WM hot path) and guarantees the list is up to date
+            // before the screen goes back to sleep.
+            reloadCachedPrefs()
+
+            // Cancel any sleep/cleanup still pending from a previous refresh cycle,
+            // otherwise it would cut this one short and leave the panel black.
+            handler.removeMessages(595)
+            handler.removeMessages(596)
+            handler.removeMessages(597)
+            handler.removeMessages(598)
+
+            val wakeLock = mVolumeWakeLock!!
+            if (isAsleep) {
+                // The screen-on blocker only waits for "initial contents", and dismissing the
+                // keyguard before the wake satisfies it early: the panel is then declared on
+                // before the WAKE transition brings the app to the front, and shows black for
+                // the gap. Waiting for the transition removes that race.
+                val hideOnTransition =
+                    Preferences().getBoolean("keyguard_hide_on_transition", false)
+                if (hideOnTransition) {
+                    mPendingKeyguardHide = true
+                } else {
+                    forceHideKeyguard()
+                }
+                XposedHelpers.callMethod(
+                    mPhoneWindowManager,
+                    "wakeUpFromWakeKey",
+                    SystemClock.uptimeMillis(),
+                    26,
+                    false
+                )
+                if (delay > 0 && !wakeLock.isHeld) {
+                    wakeLock.acquire(2300L)
+                }
+                if (hideOnTransition) {
+                    // Fallback, so a transition that never arrives cannot strand us on the
+                    // lockscreen.
+                    val keyguard_timeout = Preferences().getInt("keyguard_hide_timeout", 1200)
+                    handler.sendEmptyMessageDelayed(597, keyguard_timeout.toLong())
+                }
+            }
+
+            // A refresh on an otherwise static screen produces no new frame, so nothing is
+            // committed and the panel can stay black. Ask the eink service to repaint it.
+            val eink_delay = Preferences().getInt("eink_refresh_delay", 0)
+            if (eink_delay > 0 && (delay <= 0 || eink_delay < delay)) {
+                handler.sendEmptyMessageDelayed(598, eink_delay.toLong())
+            }
+
+//            Log.i("delay delay:$delay cleanup_delay:$cleanup_delay")
+            // Always (re)schedule, even if the screen was already on: the caller asked for
+            // `delay` ms of on-time starting now.
+            if (delay > 0) {
+                handler.sendEmptyMessageDelayed(595, delay.toLong())
+                handler.sendEmptyMessageDelayed(596, (delay + cleanup_delay).toLong())
+            }
+        }
     }
     
     fun sleepScreen(){
@@ -435,6 +528,66 @@ class ModuleMain : IXposedHookLoadPackage {
             }
         }
         if (lpparam.packageName == "android") {
+            // When the display sleeps the foreground activity is STOPPED and its surface is torn
+            // down, so on the next wake the panel shows black until the app has produced a new
+            // frame. That is instant for SystemUI but very slow for an OpenGL app, which has to
+            // rebuild its EGL surface first. Keeping the listed packages resumed across the sleep
+            // keeps their buffers valid, so the panel comes back with real content.
+            // Dismiss the keyguard once the WAKE transition has the app on screen, instead of
+            // before the wake. In the traces the panel goes black exactly when the screen-on
+            // unblock beats TO_FRONT, and stays clean when TO_FRONT lands first.
+            // Transition first: TransitionController.finishTransition only runs once the whole
+            // transition is done, later than the TO_FRONT moment the traces point at.
+            val onTransitionReady = listOf(
+                "com.android.server.wm.Transition",
+                "com.android.server.wm.TransitionController"
+            ).firstNotNullOfOrNull { className ->
+                XposedHelpers.findClassIfExists(className, lpparam.classLoader)?.let { clz ->
+                    findMethodOrNull(clz, true) { name == "onTransitionReady" }
+                        ?: findMethodOrNull(clz, true) { name == "finishTransition" }
+                }
+            }
+            Log.i("onTransitionReady hook: $onTransitionReady")
+            onTransitionReady?.hookAfter {
+                if (mPendingKeyguardHide) {
+                    mPendingKeyguardHide = false
+                    // Back onto the policy thread: this runs on the WM thread, under its lock.
+                    mPhoneWindowManagerHandler?.removeMessages(597)
+                    mPhoneWindowManagerHandler?.post { forceHideKeyguard() }
+                }
+            }
+
+            val shouldSleepActivities = listOf(
+                "com.android.server.wm.TaskFragment",
+                "com.android.server.wm.Task",
+                "com.android.server.wm.ActivityStack"
+            ).firstNotNullOfOrNull { className ->
+                XposedHelpers.findClassIfExists(className, lpparam.classLoader)?.let { clz ->
+                    findMethodOrNull(clz, true) {
+                        name == "shouldSleepActivities" && parameterTypes.isEmpty()
+                    }
+                }
+            }
+            Log.i("shouldSleepActivities hook: $shouldSleepActivities")
+            if (shouldSleepActivities != null) {
+                shouldSleepActivities.hookBefore {
+                    val packages = mKeepAwakePackages
+                    if (packages.isNotEmpty()) {
+                        val pkg = try {
+                            XposedHelpers.callMethod(it.thisObject, "getTopNonFinishingActivity")
+                                ?.let { activity ->
+                                    XposedHelpers.getObjectField(activity, "packageName") as? String
+                                }
+                        } catch (thr: Throwable) {
+                            null
+                        }
+                        if (pkg != null && packages.contains(pkg)) {
+                            it.result = false
+                        }
+                    }
+                }
+            }
+
             //            Log.i("patching  android" + lpparam.packageName + " " + mPowerManager + " " + mAlarmService + " " + enableLightIntent)
 
             findMethod(
@@ -454,6 +607,7 @@ class ModuleMain : IXposedHookLoadPackage {
                         appContext.getSystemService(Context.POWER_SERVICE) as PowerManager
                     mVolumeWakeLock =
                         mPowerManager!!.newWakeLock(268435462, "Sys::VolumeWakeLock")
+                    reloadCachedPrefs()
                     val intentFilter = IntentFilter()
                     intentFilter.addAction("com.akylas.A9_REFRESH_SCREEN")
                     intentFilter.addAction("com.akylas.A9_SLEEP_SCREEN")
@@ -463,7 +617,11 @@ class ModuleMain : IXposedHookLoadPackage {
                                 val prefs = Preferences()
                                 val delay = prefs.getInt("eink_button_sleep_delay", 4000)
                                 val cleanup_delay = prefs.getInt("volume_key_cleanup_delay", 1400)
-                                refreshScreen(intent.getIntExtra("sleep_delay", delay), cleanup_delay)
+                                refreshScreen(
+                                    intent.getIntExtra("sleep_delay", delay),
+                                    cleanup_delay,
+                                    respectManualSleep = true
+                                )
                             }
                             else if (intent?.action == "com.akylas.A9_SLEEP_SCREEN") {
                                 sleepScreen()
@@ -471,6 +629,11 @@ class ModuleMain : IXposedHookLoadPackage {
                             else if (intent?.action == "com.akylas.A9_DOZE_STATE") {
                                 val state = intent.getStringExtra("state") ?: dozeState
 //                                Log.i("received doze state event $dozeState $state ${state == "FINISH"} ${mLastDownKeyEvent} ")
+                                if (state != dozeState) {
+                                    // Fires on every screen off/on, so the cached preferences
+                                    // never stay stale for long.
+                                    reloadCachedPrefs()
+                                }
                                 dozeState = state;
                                 if (state == "FINISH" && mLastDownKeyEvent != null ) {
                                     sendPastKeyDownEvent()
@@ -478,7 +641,9 @@ class ModuleMain : IXposedHookLoadPackage {
                             }
                         }
                 }
-                if (handleWakeUpOnVolume(it.args[0] as KeyEvent)) {
+                val keyEvent = it.args[0] as KeyEvent
+                trackPowerKey(keyEvent)
+                if (handleWakeUpOnVolume(keyEvent)) {
                     it.result = 0
                 }
             }
@@ -511,6 +676,24 @@ class ModuleMain : IXposedHookLoadPackage {
                         }
                     } finally {
                     }
+                    it.result = true
+                } else if (what == 597) {
+                    //                        Log.i("handleMessage 597")
+                    if (mPendingKeyguardHide) {
+                        mPendingKeyguardHide = false
+                        forceHideKeyguard()
+                    }
+                    it.result = true
+                } else if (what == 598) {
+                    //                        Log.i("handleMessage 598")
+                    // Handled by A9AccessibilityService, which needs "allow custom broadcast"
+                    // enabled in the eink service settings. EINK_FORCE_CLEAR runs a full clear
+                    // waveform, so the panel flashes twice before showing the content;
+                    // EINK_COMMIT_BITMAP just commits the current framebuffer, but the eink
+                    // service has to expose it first.
+                    val action = if (Preferences().getBoolean("eink_refresh_use_clear", true))
+                        "EINK_FORCE_CLEAR" else "EINK_COMMIT_BITMAP"
+                    appContext.sendBroadcast(Intent(action))
                     it.result = true
                 } else if (what == 600) {
                     //                        Log.i("handleMessage 600")

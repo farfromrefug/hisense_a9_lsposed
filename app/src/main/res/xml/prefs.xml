@@ -15,6 +15,13 @@
         app:iconSpaceReserved="false"
         android:defaultValue="true"
         />
+    <EditTextPreference
+        android:key="keep_awake_packages"
+        android:title="keep awake packages"
+        android:summary="comma separated package names whose activities are never stopped when the screen sleeps, so a refresh does not start on black. costs battery, only list apps you refresh often"
+        app:iconSpaceReserved="false"
+        app:useSimpleSummaryProvider="false"
+        android:defaultValue="" />
     <PreferenceCategory
         app:iconSpaceReserved="false"
         android:title="Reader Mode">
@@ -68,5 +75,47 @@
         android:key="volume_key_cleanup_delay"
         android:summary="delay between volume key up and cleanup"
         android:title="cleanup delay" />
+    <SeekBarPreference
+        app:showSeekBarValue="true"
+        app:min="0"
+        app:adjustable="true"
+        android:max="2000"
+        app:iconSpaceReserved="false"
+        android:defaultValue="0"
+        android:key="eink_refresh_delay"
+        android:summary="delay between waking the screen and asking the eink service to commit the panel, so a static screen is actually shown. needs allow custom broadcast enabled in the eink service. 0 to disable"
+        android:title="eink refresh delay" />
+    <SwitchPreferenceCompat
+        android:key="keyguard_hide_on_transition"
+        android:title="hide lockscreen on transition"
+        android:summary="dismiss the lockscreen once the wake transition has the app on screen, instead of before the wake. removes the race that leaves the panel black"
+        app:iconSpaceReserved="false"
+        android:defaultValue="false" />
+    <SeekBarPreference
+        app:showSeekBarValue="true"
+        app:min="200"
+        app:adjustable="true"
+        android:max="3000"
+        app:iconSpaceReserved="false"
+        android:defaultValue="1200"
+        android:key="keyguard_hide_timeout"
+        android:summary="fallback for the above: hide the lockscreen anyway if the transition never arrives"
+        android:title="lockscreen hide timeout" />
+    <SwitchPreferenceCompat
+        android:key="eink_refresh_use_clear"
+        android:title="eink refresh full clear"
+        android:summary="use EINK_FORCE_CLEAR, which flashes the panel twice. turn off to use EINK_COMMIT_BITMAP instead, which needs the eink service to expose that broadcast"
+        app:iconSpaceReserved="false"
+        android:defaultValue="true" />
+    <SeekBarPreference
+        app:showSeekBarValue="true"
+        app:min="0"
+        app:adjustable="true"
+        android:max="30000"
+        app:iconSpaceReserved="false"
+        android:defaultValue="5000"
+        android:key="manual_sleep_block_delay"
+        android:summary="after turning the screen off with the power key, ignore A9_REFRESH_SCREEN for this long (0 to disable)"
+        android:title="manual sleep block delay" />
     </PreferenceCategory>
 </PreferenceScreen>
