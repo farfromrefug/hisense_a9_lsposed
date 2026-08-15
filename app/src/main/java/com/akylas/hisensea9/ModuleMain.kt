@@ -81,6 +81,12 @@ class ModuleMain : IXposedHookLoadPackage {
         @Volatile
         var mPendingKeyguardHide = false
 
+        // True while the screen is on because a refresh turned it on. A refresh must never sleep
+        // a screen the user turned on himself, so only a cycle that owns the screen schedules
+        // the sleep.
+        @Volatile
+        var mRefreshOwnsScreen = false
+
         var dozeState = "DOZE" // in Doze
 
         @RequiresApi(Build.VERSION_CODES.O)
@@ -212,6 +218,11 @@ class ModuleMain : IXposedHookLoadPackage {
         // Screen off => he is waking it back up, so drop the blackout.
         mManualSleepTime =
             if (mPowerManager?.isInteractive == true) SystemClock.uptimeMillis() else -1
+        // Either way the screen is now the user's, not a refresh cycle's, so drop any pending
+        // sleep rather than yanking the screen away from him a moment later.
+        mRefreshOwnsScreen = false
+        mPhoneWindowManagerHandler?.removeMessages(595)
+        mPhoneWindowManagerHandler?.removeMessages(596)
     }
 
     /**
@@ -245,6 +256,11 @@ class ModuleMain : IXposedHookLoadPackage {
             // Cheap enough here (off the WM hot path) and guarantees the list is up to date
             // before the screen goes back to sleep.
             reloadCachedPrefs()
+
+            // Either this cycle turns the screen on, or it extends one that did. If the screen
+            // is on because the user is using it, refresh the panel but leave it alone
+            // afterwards: taking the screen away mid-use is never what the caller meant.
+            val ownsScreen = isAsleep || mRefreshOwnsScreen
 
             // Cancel any sleep/cleanup still pending from a previous refresh cycle,
             // otherwise it would cut this one short and leave the panel black.
@@ -292,9 +308,10 @@ class ModuleMain : IXposedHookLoadPackage {
             }
 
 //            Log.i("delay delay:$delay cleanup_delay:$cleanup_delay")
-            // Always (re)schedule, even if the screen was already on: the caller asked for
-            // `delay` ms of on-time starting now.
-            if (delay > 0) {
+            // Always (re)schedule while we own the screen, even if it was already on: the caller
+            // asked for `delay` ms of on-time starting now.
+            if (delay > 0 && ownsScreen) {
+                mRefreshOwnsScreen = true
                 handler.sendEmptyMessageDelayed(595, delay.toLong())
                 handler.sendEmptyMessageDelayed(596, (delay + cleanup_delay).toLong())
             }
@@ -302,6 +319,7 @@ class ModuleMain : IXposedHookLoadPackage {
     }
     
     fun sleepScreen(){
+        mRefreshOwnsScreen = false
         XposedHelpers.callMethod(
             mPowerManager, "goToSleep", SystemClock.uptimeMillis()
         )
